@@ -5,17 +5,17 @@ var App = function() {
 };
 
 App.prototype.init = function() {
-
+  app.fetch();
 };
 
 App.prototype.send = function(message) {
-  console.log('SENDING STUFF!!');
+  // console.log('SENDING STUFF!!', message);
   // $('#chats').empty();
   $.ajax({
   // This is the url you should use to communicate with the parse API server.
     url: 'https://api.parse.com/1/classes/messages',
     type: 'POST',
-    data: message,
+    data: JSON.stringify(message),
     contentType: 'application/json',
     success: function (data) {
       console.log('chatterbox: Message sent');
@@ -33,13 +33,15 @@ App.prototype.fetch = function() {
   // This is the url you should use to communicate with the parse API server.
     url: 'https://api.parse.com/1/classes/messages',
     type: 'GET',
-    success: function (data) {
+    data: 'order=-createdAt',
+    success: function(data) {
+      // console.log(data);
+      var chat = $('#chats');
       for (var i = 0; i < data.results.length; i++) {
-        
-        console.log(data.results[i].roomname);
         var user = data.results[i].username;
         var userWords = data.results[i].text;
-        $('ul').append('<li class="list">' + user.toString() + ': ' + userWords.toString() + '</li><br><br>');
+        chat.append($('<li class="user">').text(user).html() + '</li>' + ': ' + $('<li class="msg">').text(userWords).html() + '</li><br><br>');
+        // chat.append($('<li class="msg">').text(userWords).html() + '</li><br><br>');
       }
     },
     error: function (data) {
@@ -49,22 +51,47 @@ App.prototype.fetch = function() {
   });
 };
 
+App.prototype.clearMessages = function() {
+  $('#chats').html(' ');
+};
+
+App.prototype.renderMessage = function(message) {
+
+
+  var chat = $('#chats');
+
+  // chat.append($('<li class="msg">').text(message.text).html() + '</li><br><br>');
+  console.log(message.text);
+  chat.append($('<li class="msg">' + message.text + '</li>'));
+};
 
 var app = new App();
-  
+var message = {
+  username: 'Mel Brooks',
+  text: 'Never underestimate the power of the Schwartz!',
+  roomname: 'lobby'
+};
+// app.init();
+// app.clearMessages();
+// app.renderMessage(message);
+
 $(document).ready(function() {
 
   $('form').submit('click', function(e) {
     e.preventDefault();
-    var messageVal = $('input').val();
+    console.log("this is a test")
+    var messageVal = $('#txtMsg').val();
+    var usernameVal = $('#name').val();
+    var roomnameVal = $('#roomname').val(); 
+
     var newMessage = {
-      username: 'Disgustingly Optimistic',
+      username: usernameVal,
       text: messageVal,
-      roomname: '4'
+      roomname: roomnameVal
     };
-    var string = JSON.stringify(newMessage);
+     
     window.location.reload();
-    app.send(string);
+    app.send(newMessage);
   });
 });
 
